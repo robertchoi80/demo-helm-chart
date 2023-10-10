@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "skb-app-gradle.fullname" . }}-test-connection"
+  labels:
+    {{- include "skb-app-gradle.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "skb-app-gradle.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never
