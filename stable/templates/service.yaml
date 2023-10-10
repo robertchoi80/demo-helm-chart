@@ -5,7 +5,7 @@ metadata:
   name: {{ .Release.Name }}-service
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "skb-app-gradle.labels" . | nindent 4 }}
+    {{- include "stable-app.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -14,7 +14,7 @@ spec:
     protocol: TCP
     name: http
   selector:
-    {{- include "skb-app-gradle.selectorLabels" . | nindent 4 }}
+    {{- include "stable-app.selectorLabels" . | nindent 4 }}
 {{- else if eq .Values.deploy.strategy.type "blueGreen" }}
 apiVersion: v1
 kind: Service
@@ -22,7 +22,7 @@ metadata:
   name: {{ .Release.Name }}-active-service
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "skb-app-gradle.labels" . | nindent 4 }}
+    {{- include "stable-app.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -31,7 +31,7 @@ spec:
     protocol: TCP
     name: http
   selector:
-    {{- include "skb-app-gradle.selectorLabels" . | nindent 4 }}
+    {{- include "stable-app.selectorLabels" . | nindent 4 }}
 ---
 apiVersion: v1
 kind: Service
@@ -39,7 +39,7 @@ metadata:
   name: {{ .Release.Name }}-preview-service
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "skb-app-gradle.labels" . | nindent 4 }}
+    {{- include "stable-app.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -48,5 +48,5 @@ spec:
     protocol: TCP
     name: http
   selector:
-    {{- include "skb-app-gradle.selectorLabels" . | nindent 4 }}
+    {{- include "stable-app.selectorLabels" . | nindent 4 }}
 {{- end}}

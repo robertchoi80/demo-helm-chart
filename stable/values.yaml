@@ -1,4 +1,4 @@
-# Default values for skb-app-gradle.
+# Default values for stable-app.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -38,6 +38,9 @@ serviceAccount:
   name: ""
 
 podAnnotations: {}
+
+podAdditionLabels:
+  cached: nosetvalue  # Cached Label
 
 podSecurityContext: {}
   # fsGroup: 2000
@@ -94,3 +97,47 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# 컨테이너가 살아있는지 체크
+# app 에서는 해당 url이 호출 됐을 때 http response 200 을 리턴한다.
+livenessProbe:
+  enabled: true
+  path: /
+  # 컨테이너 생성 후 몇 초 뒤에 체크할지 설정
+  initialDelaySeconds: 5
+  timeoutSeconds: 3
+  periodSeconds: 10
+  failureThreshold: 5
+
+# 컨테이너가 서비스 가능한 상태인지 체크
+# app 에서는 해당 url이 호출 됐을 때 http response 200 을 리턴한다.
+readinessProbe:
+  enabled: true
+  path: /
+  # 컨테이너 생성 후 몇 초 뒤에 체크할지 설정
+  initialDelaySeconds: 5
+  timeoutSeconds: 3
+  periodSeconds: 10
+  failureThreshold: 5
+
+lifecycle:
+  preStop:
+    exec:
+      command:
+      - sh
+      - -c
+      - sleep 20 
+
+persistence:
+  enabled: false
+  storageClass: netapp
+  storage: 5Gi
+  mountPath: "/data"
+
+configMap:
+  enabled: false
+  data:
+
+secret:
+  enabled: false
+  data: 

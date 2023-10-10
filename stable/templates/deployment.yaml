@@ -1,9 +1,9 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
-  name: {{ include "skb-app-gradle.fullname" . }}
+  name: {{ include "stable-app.fullname" . }}
   labels:
-    {{- include "skb-app-gradle.labels" . | nindent 4 }}
+    {{- include "stable-app.labels" . | nindent 4 }}
 spec:
   revisionHistoryLimit: 5
   {{- if not .Values.autoscaling.enabled }}
@@ -11,7 +11,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "skb-app-gradle.selectorLabels" . | nindent 6 }}
+      {{- include "stable-app.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -19,13 +19,16 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "skb-app-gradle.selectorLabels" . | nindent 8 }}
+        {{- include "stable-app.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podAdditionLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "skb-app-gradle.serviceAccountName" . }}
+      serviceAccountName: {{ include "stable-app.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -34,28 +37,66 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /
+              path: {{ .Values.livenessProbe.path }}
               port: http
-            failureThreshold: 5
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 3
+            {{- if .Values.livenessProbe.initialDelaySeconds }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            {{- end }}
+            {{- if .Values.livenessProbe.timeoutSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            {{- end }}
+            {{- if .Values.livenessProbe.periodSeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            {{- end }}
+            {{- if .Values.livenessProbe.failureThreshold }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /
+              path: {{ .Values.readinessProbe.path }}
               port: http
-            failureThreshold: 5
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 3
+            {{- if .Values.readinessProbe.initialDelaySeconds }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            {{- end }}
+            {{- if .Values.readinessProbe.timeoutSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            {{- end }}
+            {{- if .Values.readinessProbe.periodSeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            {{- end }}
+            {{- if .Values.readinessProbe.failureThreshold }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            {{- end }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.configMap.enabled }}
+          envFrom:
+          - configMapRef:
+              name: {{ include "stable-app.fullname" . }}
+          {{- end }}
+          {{- if .Values.secret.enabled }}
+          - secretRef:
+              name: {{ include "stable-app.fullname" . }}
+          {{- end }}
+          volumeMounts:
+          {{- if .Values.persistence.enabled }}
+            - mountPath: {{ .Values.persistence.mountPath }}
+              name: data
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -67,6 +108,12 @@ spec:
       {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "stable-app.fullname" . }}
       {{- end }}
   strategy:
     {{- include "rollout-deploy-strategy" . |  nindent 4 }}
