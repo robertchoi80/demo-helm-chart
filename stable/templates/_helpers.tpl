@@ -76,3 +76,11 @@ canary:
   {{- end }}
 {{- end}}
 {{- end }}
+
+{{- define "stable-app.serviceName" -}}
+{{- if eq .Values.deploy.strategy.type "blueGreen" }}
+{{- printf "%s-%s" (include "stable-app.fullname" .) "active-service" }}
+{{- else }}
+{{- printf "%s-%s" (include "stable-app.fullname" .) "service" }}
+{{- end }}
+{{- end }}
