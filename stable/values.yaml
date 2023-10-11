@@ -6,6 +6,7 @@ replicaCount: 2
 
 deploy:
   strategy: 
+    # rollingUpdate, blueGreen, canary
     type: blueGreen
     blueGreen:
       autoPromotionEnabled: false  # Auto Promotion Enable
