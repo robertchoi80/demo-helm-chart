@@ -9,6 +9,7 @@ deploy:
     # rollingUpdate, blueGreen, canary
     type: blueGreen
     rollingUpdate:
+      maxSurge: 1
       maxUnavailable: 1
     blueGreen:
       autoPromotionEnabled: false  # Auto Promotion Enable

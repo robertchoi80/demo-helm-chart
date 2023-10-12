@@ -75,8 +75,7 @@ canary:
   {{- toYaml . | nindent 2 -}}
   {{- end }}
 {{- else -}}
-type: RollingUpdate
-rollingUpdate:
+canary:
   {{- with .Values.deploy.strategy.rollingUpdate }}
   {{- toYaml . | nindent 2 -}}
   {{- end }}

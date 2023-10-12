@@ -1,10 +1,5 @@
-{{- if eq .Values.deploy.strategy.type "rollingUpdate" }}
-apiVersion: apps/v1
-kind: Deployment
-{{- else }}
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
-{{- end }}
 metadata:
   name: {{ include "stable-app.fullname" . }}
   labels:
