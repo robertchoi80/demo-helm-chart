@@ -63,19 +63,23 @@ Create the name of the service account to use
 
 {{- define "rollout-deploy-strategy" -}}
 {{- if eq .Values.deploy.strategy.type "blueGreen" -}}
-strategy:
-  blueGreen:
-    activeService: {{ .Release.Name }}-active-service
-    previewService: {{ .Release.Name }}-preview-service
-    {{- range $key, $value := .Values.deploy.strategy.blueGreen }}
-    {{ $key }}: {{ $value }}
-    {{- end }}
+blueGreen:
+  activeService: {{ .Release.Name }}-active-service
+  previewService: {{ .Release.Name }}-preview-service
+  {{- with .Values.deploy.strategy.blueGreen }}
+  {{- toYaml . | nindent 2 -}}
+  {{- end }}
 {{- else if eq .Values.deploy.strategy.type "canary" -}}
-strategy:
-  canary:
-    {{- with .Values.deploy.strategy.canary }}
-    {{- toYaml . | nindent 6 }}
-    {{- end }}
+canary:
+  {{- with .Values.deploy.strategy.canary }}
+  {{- toYaml . | nindent 2 -}}
+  {{- end }}
+{{- else -}}
+type: RollingUpdate
+rollingUpdate:
+  {{- with .Values.deploy.strategy.rollingUpdate }}
+  {{- toYaml . | nindent 2 -}}
+  {{- end }}
 {{- end}}
 {{- end }}
 

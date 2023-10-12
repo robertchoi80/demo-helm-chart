@@ -8,6 +8,8 @@ deploy:
   strategy: 
     # rollingUpdate, blueGreen, canary
     type: blueGreen
+    rollingUpdate:
+      maxUnavailable: 1
     blueGreen:
       autoPromotionEnabled: false  # Auto Promotion Enable
       autoPromotionSeconds: 10     # Auto Promotion Time (s)

@@ -124,4 +124,5 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "stable-app.fullname" . }}
       {{- end }}
-  {{- include "rollout-deploy-strategy" . |  nindent 2 }}
+  strategy:
+    {{- include "rollout-deploy-strategy" . |  nindent 4 }}
