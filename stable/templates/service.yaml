@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}-active-service
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     {{- include "stable-app.labels" . | nindent 4 }}
 spec:
@@ -21,6 +23,8 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}-preview-service
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
   labels:
     {{- include "stable-app.labels" . | nindent 4 }}
 spec:

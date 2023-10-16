@@ -1,14 +1,13 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: {{ include "stable-app.fullname" . }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
   labels:
     {{- include "stable-app.labels" . | nindent 4 }}
 spec:
-  revisionHistoryLimit: 5
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  replicas: 0
   selector:
     matchLabels:
       {{- include "stable-app.selectorLabels" . | nindent 6 }}
@@ -20,14 +19,7 @@ spec:
         {{- end }}
       labels:
         {{- include "stable-app.selectorLabels" . | nindent 8 }}
-        {{- with .Values.podAdditionLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
     spec:
-      {{- with .Values.hostAliases}}
-      hostAliases:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -41,66 +33,28 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- with .Values.lifecycle }}
-          lifecycle:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-          {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: {{ .Values.livenessProbe.path }}
+              path: /
               port: http
-            {{- if .Values.livenessProbe.initialDelaySeconds }}
-            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-            {{- end }}
-            {{- if .Values.livenessProbe.timeoutSeconds }}
-            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
-            {{- end }}
-            {{- if .Values.livenessProbe.periodSeconds }}
-            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-            {{- end }}
-            {{- if .Values.livenessProbe.failureThreshold }}
-            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
-            {{- end }}
-          {{- end }}
-          {{- if .Values.readinessProbe.enabled }}
+            failureThreshold: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
           readinessProbe:
             httpGet:
-              path: {{ .Values.readinessProbe.path }}
+              path: /
               port: http
-            {{- if .Values.readinessProbe.initialDelaySeconds }}
-            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
-            {{- end }}
-            {{- if .Values.readinessProbe.timeoutSeconds }}
-            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
-            {{- end }}
-            {{- if .Values.readinessProbe.periodSeconds }}
-            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-            {{- end }}
-            {{- if .Values.readinessProbe.failureThreshold }}
-            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
-            {{- end }}
-          {{- end }}
+            failureThreshold: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.configMap.enabled }}
-          envFrom:
-          - configMapRef:
-              name: {{ include "stable-app.fullname" . }}
-          {{- end }}
-          {{- if .Values.secret.enabled }}
-          - secretRef:
-              name: {{ include "stable-app.fullname" . }}
-          {{- end }}
-          volumeMounts:
-          {{- if .Values.persistence.enabled }}
-            - mountPath: {{ .Values.persistence.mountPath }}
-              name: data
-          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -113,11 +67,3 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      volumes:
-      {{- if .Values.persistence.enabled }}
-        - name: data
-          persistentVolumeClaim:
-            claimName: {{ include "stable-app.fullname" . }}
-      {{- end }}
-  strategy:
-    {{- include "rollout-deploy-strategy" . |  nindent 4 }}

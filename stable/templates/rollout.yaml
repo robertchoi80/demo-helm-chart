@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ include "stable-app.fullname" . }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  labels:
+    {{- include "stable-app.labels" . | nindent 4 }}
+spec:
+  revisionHistoryLimit: 5
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "stable-app.selectorLabels" . | nindent 6 }}
+  workloadRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "stable-app.fullname" . }}
+  strategy:
+    {{- include "rollout-deploy-strategy" . |  nindent 4 }}
