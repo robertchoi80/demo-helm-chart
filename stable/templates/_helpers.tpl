@@ -66,19 +66,13 @@ Create the name of the service account to use
 blueGreen:
   activeService: {{ .Release.Name }}-active-service
   previewService: {{ .Release.Name }}-preview-service
-  {{- with .Values.deploy.strategy.blueGreen }}
-  {{- toYaml . | nindent 2 -}}
-  {{- end }}
+  {{- toYaml .Values.deploy.strategy.blueGreen | nindent 2 -}}
 {{- else if eq .Values.deploy.strategy.type "canary" -}}
 canary:
-  {{- with .Values.deploy.strategy.canary }}
-  {{- toYaml . | nindent 2 -}}
-  {{- end }}
-{{- else -}}
+  {{- toYaml .Values.deploy.strategy.canary | nindent 2 -}}
+{{- else if eq .Values.deploy.strategy.type "rollingUpdate" -}}
 canary:
-  {{- with .Values.deploy.strategy.rollingUpdate }}
-  {{- toYaml . | nindent 2 -}}
-  {{- end }}
+  {{- toYaml .Values.deploy.strategy.rollingUpdate | nindent 2 -}}
 {{- end}}
 {{- end }}
 
