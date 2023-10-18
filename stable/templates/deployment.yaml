@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ include "stable-app.fullname" . }}
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "3"
   labels:
     {{- include "stable-app.labels" . | nindent 4 }}
 spec:
